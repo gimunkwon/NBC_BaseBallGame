@@ -8,4 +8,6 @@ UCLASS()
 class NBC_BASEBALLGAME_API UBBChatWidget : public UUserWidget
 {
 	GENERATED_BODY()
+	
+	
 };
