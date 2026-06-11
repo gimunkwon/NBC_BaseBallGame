@@ -18,6 +18,14 @@ void ABBGameMode::PostLogin(APlayerController* NewPlayer)
 	BroadCastChat(TEXT("System"), FString::Printf(TEXT("%s 님이 입장했습니다."),*PostLogin_PlayerName));
 	PlayerIndex++;
 	
+	// 최소 2명이상의 플레이어가 접속했을때만 게임 시작
+	ABBGameState* GS = GetGameState<ABBGameState>();
+	if (GS && GetNumPlayers() >= 2 && GS->GamePhase == EBBGamePhase::Waiting)
+	{
+		Startgame();
+		UE_LOG(LogTemp,Warning,TEXT("BaseBallGameStart!!"));
+	}
+	
 	/*// 테스트용
 	Startgame();*/
 }
