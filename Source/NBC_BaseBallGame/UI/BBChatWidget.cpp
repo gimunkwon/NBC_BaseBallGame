@@ -4,6 +4,7 @@
 #include "Components/Button.h"
 #include "Components/EditableTextBox.h"
 #include "Components/ScrollBox.h"
+#include "Components/TextBlock.h"
 #include "NBC_BaseBallGame/PlayerController/BBPlayerController.h"
 
 void UBBChatWidget::NativeConstruct()
@@ -42,7 +43,17 @@ void UBBChatWidget::OnSendButtonClicked()
 	ABBPlayerController* PC = Cast<ABBPlayerController>(GetOwningPlayer());
 	if (PC)
 	{
-		PC->ServerSendChat(Message);
+		// 모드에 따른 다른 RPC 호출
+		if (bIsGuessMode)
+		{
+			// 정답 채팅
+			PC->ServerSubmitGuess(Message);
+		}
+		else
+		{
+			// 일반 채팅
+			PC->ServerSendChat(Message);
+		}
 	}
 	
 	ET_InputChat->SetText(FText::GetEmpty());
@@ -56,4 +67,23 @@ void UBBChatWidget::OnInputTextCommitted(const FText& Text, ETextCommit::Type Co
 	{
 		OnSendButtonClicked();
 	}
+}
+
+// 이 위젯에 포커싱이 되었을때 키 입력 이벤트가 발생했을 경우 일어나는 이벤트 함수
+FReply UBBChatWidget::NativeOnPreviewKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
+{
+	// Tab키 입력시 토글(정답/일반채팅)
+	if (InKeyEvent.GetKey() == EKeys::Tab)
+	{
+		bIsGuessMode = !bIsGuessMode;
+		
+		FString ModeText = bIsGuessMode ? TEXT("[정답]") : TEXT("[일반]");
+		if (Text_ModeDisplay)
+		{
+			Text_ModeDisplay->SetText(FText::FromString(ModeText));
+		}
+		return FReply::Handled();
+	}
+	
+	return Super::NativeOnPreviewKeyDown(InGeometry, InKeyEvent);
 }

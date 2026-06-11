@@ -4,6 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "BBChatWidget.generated.h"
 
+class UTextBlock;
 class UBBChatMessageEntry;
 class UButton;
 class UEditableTextBox;
@@ -21,6 +22,8 @@ public:
 	TObjectPtr<UEditableTextBox> ET_InputChat;
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UButton> Btn_SendChat;
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UTextBlock> Text_ModeDisplay;
 #pragma endregion 
 	
 #pragma region WidgetClass
@@ -35,12 +38,14 @@ public:
 private:
 	UFUNCTION()
 	void OnSendButtonClicked();
-	
 	UFUNCTION()
 	void OnInputTextCommitted(const FText& Text, ETextCommit::Type CommitMethod);
+	
+	bool bIsGuessMode = false;
 	
 protected:
 #pragma region Override
 	virtual void NativeConstruct() override;
+	virtual FReply NativeOnPreviewKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
 #pragma endregion 
 };
