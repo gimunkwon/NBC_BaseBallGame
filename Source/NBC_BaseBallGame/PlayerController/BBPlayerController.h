@@ -22,6 +22,12 @@ public:
 	void ServerSendChat(const FString& Message);
 #pragma endregion 
 	
+#pragma region GameLogic
+	// 숫자 야구 정답 입력 서버RPC
+	UFUNCTION(Server,Reliable)
+	void ServerSubmitGuess(const FString& GuessString);
+#pragma endregion 
+	
 protected:
 #pragma region Override
 	// virtual void BeginPlay() override;

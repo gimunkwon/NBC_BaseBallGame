@@ -2,7 +2,6 @@
 
 #include "Blueprint/UserWidget.h"
 #include "GameFramework/PlayerState.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "NBC_BaseBallGame/GameMode/BBGameMode.h"
 #include "NBC_BaseBallGame/UI/BBChatWidget.h"
 
@@ -55,4 +54,12 @@ void ABBPlayerController::ServerSendChat_Implementation(const FString& Message)
 	}
 }
 
-
+void ABBPlayerController::ServerSubmitGuess_Implementation(const FString& GuessString)
+{
+	ABBGameMode* GameMode = Cast<ABBGameMode>(GetWorld()->GetAuthGameMode());
+	if (GameMode)
+	{
+		FString SenderName = PlayerState ? PlayerState->GetPlayerName() : TEXT("Unknown");
+		GameMode->ProcessGuess(GuessString, SenderName);
+	}
+}
