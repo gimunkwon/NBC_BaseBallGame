@@ -4,10 +4,31 @@
 #include "Blueprint/UserWidget.h"
 #include "BBChatWidget.generated.h"
 
+class UBBChatMessageEntry;
+class UButton;
+class UEditableTextBox;
+class UScrollBox;
+
 UCLASS()
 class NBC_BASEBALLGAME_API UBBChatWidget : public UUserWidget
 {
 	GENERATED_BODY()
+public:
+#pragma region BindWidget
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UScrollBox> ScrollBox_ChatLog;
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UEditableTextBox> ET_InputChat;
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UButton> Btn_SendChat;
+#pragma endregion 
+	// 동적스폰할 채팅로그위젯
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UBBChatMessageEntry> ChatMessageEntryClass;
 	
+	UFUNCTION(BlueprintCallable)
+	void AddMessage(const FString& InMessage);
 	
+protected:
+	virtual void NativeConstruct() override;
 };
