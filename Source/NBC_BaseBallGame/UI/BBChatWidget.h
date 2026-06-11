@@ -29,6 +29,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AddMessage(const FString& InMessage);
 	
+private:
+	UFUNCTION()
+	void OnSendButtonClicked();
+	
+	UFUNCTION()
+	void OnInputTextCommitted(const FText& Text, ETextCommit::Type CommitMethod);
+	
 protected:
 	virtual void NativeConstruct() override;
 };
