@@ -84,3 +84,10 @@ DerivedDataCache/*
 
 # Prerequisites
 *.d
+
+#Claude
+Claude.md
+
+#Content
+Content/*
+Docs/
