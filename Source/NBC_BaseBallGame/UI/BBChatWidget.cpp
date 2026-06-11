@@ -4,6 +4,7 @@
 #include "Components/Button.h"
 #include "Components/EditableTextBox.h"
 #include "Components/ScrollBox.h"
+#include "NBC_BaseBallGame/PlayerController/BBPlayerController.h"
 
 void UBBChatWidget::NativeConstruct()
 {
@@ -31,17 +32,20 @@ void UBBChatWidget::AddMessage(const FString& InMessage)
 	}
 }
 
-// 버튼 입력 발생시 AddMessage 메서드호출
+// 버튼 입력 발생시 PlayerController의 ServerRPC 호출
 // EditableTextBox를 비워줌
 void UBBChatWidget::OnSendButtonClicked()
 {
 	const FString Message = ET_InputChat->GetText().ToString();
+	if (Message.IsEmpty()) return;
 	
-	if (!Message.IsEmpty())
+	ABBPlayerController* PC = Cast<ABBPlayerController>(GetOwningPlayer());
+	if (PC)
 	{
-		AddMessage(Message);
-		ET_InputChat->SetText(FText::GetEmpty());
+		PC->ServerSendChat(Message);
 	}
+	
+	ET_InputChat->SetText(FText::GetEmpty());
 }
 
 // Enter 입력 발생시 OnSendButtonClicked 이벤트 발생
