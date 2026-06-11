@@ -27,6 +27,7 @@ void UBBChatWidget::AddMessage(const FString& InMessage)
 		Entry->SetMessage(InMessage);
 		ScrollBox_ChatLog->AddChild(Entry);
 		ScrollBox_ChatLog->ScrollToEnd();
+		UE_LOG(LogTemp,Warning,TEXT("ScrollBox_ChatLog Current Child : %s"),*ScrollBox_ChatLog->GetChildAt(0)->GetName());
 	}
 }
 
@@ -47,7 +48,7 @@ void UBBChatWidget::OnSendButtonClicked()
 // 방법이 2가지 1. 버튼 누르기 2. 엔터 누르기
 void UBBChatWidget::OnInputTextCommitted(const FText& Text, ETextCommit::Type CommitMethod)
 {
-	if (CommitMethod == ETextCommit::OnEnter)
+	if (CommitMethod == ETextCommit::OnEnter || CommitMethod == ETextCommit::OnCleared && !Text.IsEmpty())
 	{
 		OnSendButtonClicked();
 	}
