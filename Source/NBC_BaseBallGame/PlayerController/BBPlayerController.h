@@ -18,6 +18,8 @@ public:
 #pragma region ChatFunc
 	UFUNCTION(Client,Reliable)
 	void ClientReceiveChat(const FString& SenderName, const FString& Message);
+	UFUNCTION(Server,Reliable)
+	void ServerSendChat(const FString& Message);
 #pragma endregion 
 	
 protected:

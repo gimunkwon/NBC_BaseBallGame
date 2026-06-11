@@ -1,7 +1,9 @@
 #include "BBPlayerController.h"
 
 #include "Blueprint/UserWidget.h"
+#include "GameFramework/PlayerState.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "NBC_BaseBallGame/GameMode/BBGameMode.h"
 #include "NBC_BaseBallGame/UI/BBChatWidget.h"
 
 // void ABBPlayerController::BeginPlay()
@@ -42,6 +44,15 @@ void ABBPlayerController::ClientReceiveChat_Implementation(const FString& Sender
 	}
 }
 
-
+void ABBPlayerController::ServerSendChat_Implementation(const FString& Message)
+{
+	ABBGameMode* GameMode = Cast<ABBGameMode>(GetWorld()->GetAuthGameMode());
+	
+	if (GameMode)
+	{
+		FString SenderName = PlayerState ? PlayerState->GetPlayerName() : TEXT("Unknown");
+		GameMode->BroadCastChat(SenderName, Message);
+	}
+}
 
 
