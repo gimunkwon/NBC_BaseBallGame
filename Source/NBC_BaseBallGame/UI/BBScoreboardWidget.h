@@ -13,11 +13,11 @@ class NBC_BASEBALLGAME_API UBBScoreboardWidget : public UUserWidget
 	
 public:	
 #pragma region Setter
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void SetStrikeCount(int32 count);
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void SetBallCount(int32 count);
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void SetOutCount(bool bIsOut);
 #pragma endregion 
 	
