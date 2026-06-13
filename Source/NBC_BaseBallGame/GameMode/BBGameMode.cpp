@@ -82,6 +82,11 @@ void ABBGameMode::ProcessGuess(const FString& GuessString, ABBPlayerController* 
 			BroadCastChat(TEXT("System"), TEXT("숫자만 입력해 주세요"));
 			return;
 		}
+		if (GuessChar == '0')
+		{
+			BroadCastChat(TEXT("System"), TEXT("0은 입력할 수 없습니다."));
+			return;
+		}
 	}
 	
 	// 입력한 숫자가 세자리가 아닌 경우
@@ -90,6 +95,19 @@ void ABBGameMode::ProcessGuess(const FString& GuessString, ABBPlayerController* 
 		FString Answer = FString::Printf(TEXT("3자리 유효한 숫자만 입력해주세요 : 현재 입력한 수의 자릿수 : %d"),GuessString.Len());
 		BroadCastChat(TEXT("System"),Answer);
 		return;
+	}
+	
+	// 입력한 숫자가 중복된 숫자인 경우
+	TSet<TCHAR> UniqueChars;
+	for (const auto& GuessChar : GuessString )
+	{
+		bool bAlreadyExists = false;
+		UniqueChars.Add(GuessChar, &bAlreadyExists);
+		if (bAlreadyExists)
+		{
+			BroadCastChat(TEXT("System"), TEXT("중복된 숫자는 입력할 수 없습니다."));
+			return;
+		}
 	}
 #pragma endregion 
 	
