@@ -37,7 +37,7 @@ public:
 	UFUNCTION(Client, Reliable)
 	void ClientOnRoundReset();
 	UFUNCTION(Client, Reliable)
-	void ClientOnTurnStarted(bool bIsMyTurn, float InTurnDuration);
+	void ClientOnTurnStarted(bool bIsMyTurn, float InTurnDuration, int32 InRemainingAttempts);
 
 	// Server RPC
 	UFUNCTION(Server, Reliable, BlueprintCallable)

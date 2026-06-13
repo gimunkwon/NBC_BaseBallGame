@@ -34,6 +34,8 @@ public:
 	TObjectPtr<UTextBlock> Text_MyTurn;
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UTextBlock> Text_OtherTurn;
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UTextBlock> Text_RemainChance;
 #pragma endregion
 
 #pragma region WidgetClass
@@ -50,6 +52,8 @@ public:
 	// InTurnDuration=0 으로 호출하면 카운트다운 정지
 	UFUNCTION(BlueprintCallable)
 	void SetGuessMode(bool bGuess, float InTurnDuration);
+	UFUNCTION(BlueprintCallable)
+	void SetRemainChance(int32 InRemainChance);
 
 private:
 	UFUNCTION()

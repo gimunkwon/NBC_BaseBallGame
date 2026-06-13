@@ -165,6 +165,14 @@ void UBBChatWidget::OnCountdownTick()
 	}
 }
 
+void UBBChatWidget::SetRemainChance(int32 InRemainChance)
+{
+	if (Text_RemainChance)
+	{
+		Text_RemainChance->SetText(FText::FromString(FString::Printf(TEXT("남은 기회 : %d"),InRemainChance)));
+	}
+}
+
 void UBBChatWidget::UpdateTurnColors(bool bIsMyTurn)
 {
 	const FLinearColor Active(1.f, 1.f, 0.f, 1.f);     // 노란색 — 현재 턴

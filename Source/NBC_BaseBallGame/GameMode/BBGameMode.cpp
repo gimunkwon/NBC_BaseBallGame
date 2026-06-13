@@ -385,12 +385,15 @@ void ABBGameMode::StartTurn()
 		: TEXT("Unknown");
 	BroadCastChat(TEXT("System"), FString::Printf(TEXT("%s의 턴입니다. (제한시간: %.0f초)"), *TurnPlayerName, TurnDuration));
 
+	ABBGameState* TurnGS = GetGameState<ABBGameState>();
+	int32 Remain = TurnGS ? TurnGS->RemainingAttempts : 0;
+
 	for (int32 i = 0; i < TurnOrder.Num(); i++)
 	{
 		ABBPlayerController* PC = TurnOrder[i].Get();
 		if (PC)
 		{
-			PC->ClientOnTurnStarted(i == CurrentTurnIndex, TurnDuration);
+			PC->ClientOnTurnStarted(i == CurrentTurnIndex, TurnDuration, Remain);
 		}
 	}
 

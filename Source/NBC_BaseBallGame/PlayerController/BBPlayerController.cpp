@@ -69,10 +69,11 @@ void ABBPlayerController::ServerSubmitGuess_Implementation(const FString& GuessS
 // 승리/패배 게임 로직이 분기에 도달시 호출된 ClientRPC
 void ABBPlayerController::ClientOnGameResult_Implementation(bool bWin)
 {
-	// 게임 종료 시 카운트다운 정지
+	// 게임 종료 시 카운트다운 정지 + 남은 횟수 0으로 표시
 	if (Widget_ChatInst)
 	{
 		Widget_ChatInst->SetGuessMode(false, 0.f);
+		Widget_ChatInst->SetRemainChance(0);
 	}
 	TArray<AActor*> FoundActor;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("TVScoreBoard"),FoundActor);
@@ -187,11 +188,12 @@ void ABBPlayerController::ServerSetReady_Implementation()
 	}
 }
 
-// 턴 시작 알림 — 내 턴 여부에 따라 정답 모드 전환 + 카운트다운 시작
-void ABBPlayerController::ClientOnTurnStarted_Implementation(bool bIsMyTurn, float InTurnDuration)
+// 턴 시작 알림 — 내 턴 여부에 따라 정답 모드 전환 + 카운트다운 시작 + 남은 횟수 표시
+void ABBPlayerController::ClientOnTurnStarted_Implementation(bool bIsMyTurn, float InTurnDuration, int32 InRemainingAttempts)
 {
 	if (Widget_ChatInst)
 	{
 		Widget_ChatInst->SetGuessMode(bIsMyTurn, InTurnDuration);
+		Widget_ChatInst->SetRemainChance(InRemainingAttempts);
 	}
 }
