@@ -24,9 +24,11 @@ public:
 #pragma region GameLogicFunc
 	// 게임시작 초기화 로직
 	void Startgame();
+	void SetPlayerReady(ABBPlayerController* PC);
+	void CheckAllReady();
+	
 	// 정답 맞추기,게임 상태 관리
 	void ProcessGuess(const FString& GuessString, ABBPlayerController* SenderPC);
-	
 	void NotifyGameResult(ABBPlayerController* WinnerPC, ABBPlayerController* LoserPC);
 	void RequestRematch(ABBPlayerController* RequesterPC);
 	void RespondRematch(ABBPlayerController* ResponderPC, bool bAccepted);

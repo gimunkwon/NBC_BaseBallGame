@@ -4,10 +4,12 @@
 #include "GameFramework/PlayerState.h"
 #include "NBC_BaseBallGame/GameState/BBGameState.h"
 #include "NBC_BaseBallGame/PlayerController/BBPlayerController.h"
+#include "NBC_BaseBallGame/PlayerState/BBPlayerState.h"
 
 ABBGameMode::ABBGameMode()
 	: PlayerIndex(0)
 {
+	PlayerStateClass = ABBPlayerState::StaticClass();
 }
 
 void ABBGameMode::PostLogin(APlayerController* NewPlayer)
@@ -18,7 +20,7 @@ void ABBGameMode::PostLogin(APlayerController* NewPlayer)
 	BroadCastChat(TEXT("System"), FString::Printf(TEXT("%s 님이 입장했습니다."),*PostLogin_PlayerName));
 	PlayerIndex++;
 	
-	// 최소 2명이상의 플레이어가 접속했을때만 게임 시작
+	/*// 최소 2명이상의 플레이어가 접속했을때만 게임 시작
 	ABBGameState* GS = GetGameState<ABBGameState>();
 	if (GS && GetNumPlayers() >= 2 && GS->GamePhase == EBBGamePhase::Waiting)
 	{
@@ -33,10 +35,7 @@ void ABBGameMode::PostLogin(APlayerController* NewPlayer)
 			}
 		}
 		UE_LOG(LogTemp,Warning,TEXT("BaseBallGameStart!!"));
-	}
-	
-	/*// 테스트용
-	Startgame();*/
+	}*/
 }
 
 void ABBGameMode::BroadCastChat(const FString& SenderName, const FString& Message)
@@ -253,4 +252,59 @@ void ABBGameMode::ResetRound()
 			PC->ClientOnRoundReset();
 		}
 	}
+}
+
+// 플레이어 준비 상태 확인 메서드
+void ABBGameMode::SetPlayerReady(ABBPlayerController* PC)
+{
+	if (!PC || !PC->PlayerState)
+	{
+		return;
+	}
+	
+	ABBPlayerState* BBPS = Cast<ABBPlayerState>(PC->PlayerState);
+	// 이미 준비 완료 됬으면 EarlyExit
+	if (!BBPS || !BBPS->bIsReady)
+	{
+		return;
+	}
+	
+	BBPS->bIsReady = true;
+	
+	FString PlayerName = PC->PlayerState->GetPlayerName();
+	BroadCastChat(TEXT("System"), FString::Printf(TEXT("%s 님이 준비 완료했습니다."),*PlayerName));
+	
+	CheckAllReady();
+}
+
+// 플레이어의 준비 상태에 따라 StartPlay호출 여부 메서드
+void ABBGameMode::CheckAllReady()
+{
+	ABBGameState* GS = GetGameState<ABBGameState>();
+	if ((!GS || GS->GamePhase != EBBGamePhase::Waiting) || (GetNumPlayers() > 2))
+	{
+		return;
+	}
+	
+	for (APlayerState* PS : GS->PlayerArray)
+	{
+		ABBPlayerState* BBPS = Cast<ABBPlayerState>(PS);
+		// 준비가 안된 인원이 있으면 return
+		if (!BBPS || !BBPS->bIsReady)
+		{
+			return;
+		}
+	}
+	
+	Startgame();
+	
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		ABBPlayerController* PC = Cast<ABBPlayerController>(*It);
+		if (PC)
+		{
+			PC->ClientOnRoundReset();
+		}
+	}
+	
 }
