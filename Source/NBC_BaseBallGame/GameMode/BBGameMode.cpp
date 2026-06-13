@@ -58,6 +58,7 @@ void ABBGameMode::Startgame()
 // 정답유무/시도횟수 관리 메서드
 void ABBGameMode::ProcessGuess(const FString& GuessString, const FString& SenderName)
 {
+#pragma region EarlyExit
 	ABBGameState* GS = GetGameState<ABBGameState>();
 	if (!GS || GS->GamePhase != EBBGamePhase::Playing)
 	{
@@ -81,6 +82,7 @@ void ABBGameMode::ProcessGuess(const FString& GuessString, const FString& Sender
 		BroadCastChat(TEXT("System"),Answer);
 		return;
 	}
+#pragma endregion 
 	
 	int32 Strike = 0, Ball = 0;
 	for (int32 i = 0; i < GuessString.Len(); i++)
@@ -94,9 +96,11 @@ void ABBGameMode::ProcessGuess(const FString& GuessString, const FString& Sender
 			Ball++;
 		}
 	}
+	GS->SetLastGuessResult(Strike,Ball);
 	
 	GS->RemainingAttempts--;
 	
+#pragma region BroadCastChat
 	// 추측에 대한 결과값
 	if (Strike + Ball == 0)
 	{
@@ -122,6 +126,7 @@ void ABBGameMode::ProcessGuess(const FString& GuessString, const FString& Sender
 		BroadCastChat(TEXT("System"), Answer);
 		return;
 	}
+#pragma endregion 
 	
 	
 }
