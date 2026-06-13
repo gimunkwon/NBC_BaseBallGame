@@ -14,6 +14,7 @@ UCLASS()
 class NBC_BASEBALLGAME_API UBBChatWidget : public UUserWidget
 {
 	GENERATED_BODY()
+
 public:
 #pragma region BindWidget
 	UPROPERTY(meta=(BindWidget))
@@ -26,21 +27,23 @@ public:
 	TObjectPtr<UTextBlock> Text_ModeDisplay;
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UButton> Btn_ReadyORReset;
-#pragma endregion 
-	
+#pragma endregion
+
 #pragma region WidgetClass
 	// 동적스폰할 채팅로그위젯
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UBBChatMessageEntry> ChatMessageEntryClass;
 #pragma endregion
-	
+
 	UFUNCTION(BlueprintCallable)
 	void AddMessage(const FString& InMessage);
 	UFUNCTION(BlueprintCallable)
 	void SetStartButtonVisibility(bool bVisible);
 	UFUNCTION(BlueprintCallable)
 	void SetStartButtonEnable(bool bCanEnable);
-	
+	UFUNCTION(BlueprintCallable)
+	void SetGuessMode(bool bGuess);
+
 private:
 	UFUNCTION()
 	void OnSendButtonClicked();
@@ -48,12 +51,12 @@ private:
 	void OnInputTextCommitted(const FText& Text, ETextCommit::Type CommitMethod);
 	UFUNCTION()
 	void OnStartGameButtonClicked();
-	
+
 	bool bIsGuessMode = false;
-	
+
 protected:
 #pragma region Override
 	virtual void NativeConstruct() override;
 	virtual FReply NativeOnPreviewKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
-#pragma endregion 
+#pragma endregion
 };

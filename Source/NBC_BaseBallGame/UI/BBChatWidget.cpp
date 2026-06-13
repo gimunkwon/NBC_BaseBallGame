@@ -7,7 +7,6 @@
 #include "Components/TextBlock.h"
 #include "NBC_BaseBallGame/GameState/BBGameState.h"
 #include "NBC_BaseBallGame/PlayerController/BBPlayerController.h"
-#include "NBC_BaseBallGame/PlayerState/BBPlayerState.h"
 
 void UBBChatWidget::NativeConstruct()
 {
@@ -112,16 +111,11 @@ void UBBChatWidget::SetStartButtonEnable(bool bCanEnable)
 void UBBChatWidget::OnStartGameButtonClicked()
 {
 	ABBPlayerController* PC = Cast<ABBPlayerController>(GetOwningPlayer());
-	if (!PC)
-	{
-		return;
-	}
+	if (!PC) return;
+
 	ABBGameState* GS = Cast<ABBGameState>(GetWorld()->GetGameState());
-	if (!GS)
-	{
-		return;
-	}
-	
+	if (!GS) return;
+
 	if (GS->GamePhase == EBBGamePhase::Waiting)
 	{
 		PC->ServerSetReady();
@@ -131,7 +125,15 @@ void UBBChatWidget::OnStartGameButtonClicked()
 	{
 		PC->ServerRequestRematch();
 	}
-	
-	
-	
+}
+
+// 턴 변경 시 정답/일반 모드 강제 전환
+void UBBChatWidget::SetGuessMode(bool bGuess)
+{
+	bIsGuessMode = bGuess;
+	FString ModeText = bIsGuessMode ? TEXT("[정답]") : TEXT("[일반]");
+	if (Text_ModeDisplay)
+	{
+		Text_ModeDisplay->SetText(FText::FromString(ModeText));
+	}
 }

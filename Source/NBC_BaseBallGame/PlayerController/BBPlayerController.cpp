@@ -181,3 +181,12 @@ void ABBPlayerController::ServerSetReady_Implementation()
 		GM->SetPlayerReady(this);
 	}
 }
+
+// 턴 시작 알림 — 내 턴 여부에 따라 정답 모드 전환
+void ABBPlayerController::ClientOnTurnStarted_Implementation(bool bIsMyTurn, float InTurnDuration)
+{
+	if (Widget_ChatInst)
+	{
+		Widget_ChatInst->SetGuessMode(bIsMyTurn);
+	}
+}
