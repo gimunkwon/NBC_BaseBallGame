@@ -4,6 +4,8 @@
 #include "GameFramework/GameMode.h"
 #include "BBGameMode.generated.h"
 
+class ABBPlayerController;
+
 UCLASS()
 class NBC_BASEBALLGAME_API ABBGameMode : public AGameMode
 {
@@ -23,7 +25,12 @@ public:
 	// 게임시작 초기화 로직
 	void Startgame();
 	// 정답 맞추기,게임 상태 관리
-	void ProcessGuess(const FString& GuessString, const FString& SenderName);
+	void ProcessGuess(const FString& GuessString, ABBPlayerController* SenderPC);
+	
+	void NotifyGameResult(ABBPlayerController* WinnerPC, ABBPlayerController* LoserPC);
+	void RequestRematch(ABBPlayerController* RequesterPC);
+	void RespondRematch(ABBPlayerController* ResponderPC, bool bAccepted);
+	void ResetRound();
 #pragma endregion 
 	
 private:
@@ -33,4 +40,11 @@ private:
 	
 	// 비밀번호 생성 메서드
 	void GenerateSeceretNumber();
+	
+	// 승자/패자 클라이언트 인스턴스
+	TWeakObjectPtr<ABBPlayerController> CachedWinnerPC;
+	TWeakObjectPtr<ABBPlayerController> CachedLoserPC;
+	
+	// 재도전 요청 중복 방지 플래그
+	bool bRematchPending = false;
 };

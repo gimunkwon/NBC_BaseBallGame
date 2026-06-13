@@ -24,6 +24,8 @@ public:
 	TObjectPtr<UButton> Btn_SendChat;
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UTextBlock> Text_ModeDisplay;
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UButton> Btn_ReadyORReset;
 #pragma endregion 
 	
 #pragma region WidgetClass
@@ -34,12 +36,16 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	void AddMessage(const FString& InMessage);
+	UFUNCTION(BlueprintCallable)
+	void SetStartButtonVisibility(bool bVisible);
 	
 private:
 	UFUNCTION()
 	void OnSendButtonClicked();
 	UFUNCTION()
 	void OnInputTextCommitted(const FText& Text, ETextCommit::Type CommitMethod);
+	UFUNCTION()
+	void OnStartGameButtonClicked();
 	
 	bool bIsGuessMode = false;
 	

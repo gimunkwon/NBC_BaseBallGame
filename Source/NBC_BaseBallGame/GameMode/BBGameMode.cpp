@@ -23,6 +23,15 @@ void ABBGameMode::PostLogin(APlayerController* NewPlayer)
 	if (GS && GetNumPlayers() >= 2 && GS->GamePhase == EBBGamePhase::Waiting)
 	{
 		Startgame();
+		// 게임 시작시 모든 클라이언트 UI 리셋
+		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+		{
+			ABBPlayerController* PC = Cast<ABBPlayerController>(*It);
+			if (PC)
+			{
+				PC->ClientOnRoundReset();
+			}
+		}
 		UE_LOG(LogTemp,Warning,TEXT("BaseBallGameStart!!"));
 	}
 	
@@ -55,8 +64,9 @@ void ABBGameMode::Startgame()
 	
 	BroadCastChat(TEXT("System"), TEXT("게임이 시작 되었습니다."));
 }
+
 // 정답유무/시도횟수 관리 메서드
-void ABBGameMode::ProcessGuess(const FString& GuessString, const FString& SenderName)
+void ABBGameMode::ProcessGuess(const FString& GuessString, ABBPlayerController* SenderPC)
 {
 #pragma region EarlyExit
 	ABBGameState* GS = GetGameState<ABBGameState>();
@@ -84,6 +94,7 @@ void ABBGameMode::ProcessGuess(const FString& GuessString, const FString& Sender
 	}
 #pragma endregion 
 	
+#pragma region GuessResult
 	int32 Strike = 0, Ball = 0;
 	for (int32 i = 0; i < GuessString.Len(); i++)
 	{
@@ -99,16 +110,17 @@ void ABBGameMode::ProcessGuess(const FString& GuessString, const FString& Sender
 	GS->SetLastGuessResult(Strike,Ball);
 	
 	GS->RemainingAttempts--;
+#pragma endregion
 	
 #pragma region BroadCastChat
 	// 추측에 대한 결과값
 	if (Strike + Ball == 0)
 	{
-		BroadCastChat(TEXT("System"), FString::Printf(TEXT("%s의 추측: %s -> Out | 남은 횟수: %d"),*SenderName, *GuessString,GS->RemainingAttempts));
+		BroadCastChat(TEXT("System"), FString::Printf(TEXT("%s의 추측: %s -> Out | 남은 횟수: %d"),*SenderPC->PlayerState->GetPlayerName(), *GuessString,GS->RemainingAttempts));
 	}
 	else
 	{
-		FString Result = FString::Printf(TEXT("%s의 추측 : %s -> %dS %dB | 남은 횟수: %d"),*SenderName, *GuessString, Strike, Ball,GS->RemainingAttempts);
+		FString Result = FString::Printf(TEXT("%s의 추측 : %s -> %dS %dB | 남은 횟수: %d"),*SenderPC->PlayerState->GetPlayerName(), *GuessString, Strike, Ball,GS->RemainingAttempts);
 		BroadCastChat(TEXT("System"), Result);
 	}
 	// 승리
@@ -116,6 +128,18 @@ void ABBGameMode::ProcessGuess(const FString& GuessString, const FString& Sender
 	{
 		GS->GamePhase = EBBGamePhase::Win;
 		BroadCastChat(TEXT("System"), TEXT("정답입니다. 게임 클리어"));
+		
+		ABBPlayerController* LoserPC = nullptr;
+		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+		{
+			ABBPlayerController* PC = Cast<ABBPlayerController>(*It);
+			if (PC && PC != SenderPC)
+			{
+				LoserPC = PC;
+				break;
+			}
+		}
+		NotifyGameResult(SenderPC, LoserPC);
 		return;
 	}
 	// 패배
@@ -124,12 +148,22 @@ void ABBGameMode::ProcessGuess(const FString& GuessString, const FString& Sender
 		GS->GamePhase = EBBGamePhase::Lose;
 		FString Answer = FString::Printf(TEXT("게임 오버 정답은 %d%d%d 였습니다."),SecretNumber[0],SecretNumber[1],SecretNumber[2]);
 		BroadCastChat(TEXT("System"), Answer);
+		
+		// 승자 없음
+		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+		{
+			ABBPlayerController* PC = Cast<ABBPlayerController>(*It);
+			if (PC)
+			{
+				PC->ClientOnGameResult(false);
+			}
+		}
+		
 		return;
 	}
 #pragma endregion 
-	
-	
 }
+
 // 비밀번호 생성 메서드
 void ABBGameMode::GenerateSeceretNumber()
 {
@@ -152,4 +186,71 @@ void ABBGameMode::GenerateSeceretNumber()
 	
 	UE_LOG(LogTemp,Warning,TEXT("Current Answer : %s"),*ChooseNumber);*/
 	
+}
+
+// 게임 결과를 Client에게 알려주는 서버 함수
+void ABBGameMode::NotifyGameResult(ABBPlayerController* WinnerPC, ABBPlayerController* LoserPC)
+{
+	CachedWinnerPC = WinnerPC;
+	CachedLoserPC = LoserPC;
+	
+	if (WinnerPC)
+	{
+		WinnerPC->ClientOnGameResult(true);
+	}
+	if (LoserPC)
+	{
+		LoserPC->ClientOnGameResult(false);
+	}
+}
+
+// 패자 클라이언트 -> 승자 클라이언트에게 재도전 요청을 처리하는 서버 함수
+void ABBGameMode::RequestRematch(ABBPlayerController* RequesterPC)
+{
+	if (bRematchPending)
+	{
+		return;
+	}
+	bRematchPending = true;
+	
+	if (!CachedWinnerPC.IsValid())
+	{
+		ResetRound();
+		return;
+	}
+	CachedWinnerPC->ClientShowRematchRequest();
+}
+
+// 승자 클라이언트에서 재도전 요청 수락/거절 메서드
+void ABBGameMode::RespondRematch(ABBPlayerController* ResponderPC, bool bAccepted)
+{
+	if (bAccepted)
+	{
+		ResetRound();
+	}
+	else
+	{
+		if (CachedLoserPC.IsValid())
+		{
+			CachedLoserPC->ClientOnRematchDeclined();
+		}
+	}
+}
+
+void ABBGameMode::ResetRound()
+{
+	bRematchPending = false;
+	Startgame();
+	
+	CachedLoserPC.Reset();
+	CachedWinnerPC.Reset();
+	
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		ABBPlayerController* PC = Cast<ABBPlayerController>(*It);
+		if (PC)
+		{
+			PC->ClientOnRoundReset();
+		}
+	}
 }

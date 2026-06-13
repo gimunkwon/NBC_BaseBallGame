@@ -26,6 +26,23 @@ public:
 	// 숫자 야구 정답 입력 서버RPC
 	UFUNCTION(Server,Reliable)
 	void ServerSubmitGuess(const FString& GuessString);
+	
+	// ClientRPC
+	UFUNCTION(Client,Reliable)
+	void ClientOnGameResult(bool bWin);
+	UFUNCTION(Client,Reliable)
+	void ClientShowRematchRequest();
+	UFUNCTION(Client,Reliable)
+	void ClientOnRematchDeclined();
+	UFUNCTION(Client,Reliable)
+	void ClientOnRoundReset();
+	
+	//ServerRPC
+	UFUNCTION(Server,Reliable,BlueprintCallable)
+	void ServerRequestRematch();
+	UFUNCTION(Server,Reliable,BlueprintCallable)
+	void ServerRespondRematch(bool bAccepted);
+	
 #pragma endregion 
 	
 protected:
@@ -39,5 +56,21 @@ protected:
 	TSubclassOf<UBBChatWidget> Widget_ChatClass;
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="UI|Instance")
 	TObjectPtr<UBBChatWidget> Widget_ChatInst;
+	
+	// BP_TVScoreBoard 교체용 위젯 클래스
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="UI")
+	TSubclassOf<UUserWidget> Widget_ScoreboardClass;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="UI")
+	TSubclassOf<UUserWidget> Widget_WinClass;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="UI")
+	TSubclassOf<UUserWidget> Widget_LoseClass;
+	
+	// 재도전 요청 위젯
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="UI")
+	TSubclassOf<UUserWidget> Widget_RematchRequestClass;
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="UI|Instance")
+	TObjectPtr<UUserWidget> Widget_RematchRequestInst;
+	
+	
 #pragma endregion 
 };

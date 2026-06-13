@@ -13,6 +13,7 @@ void UBBChatWidget::NativeConstruct()
 	
 	Btn_SendChat->OnClicked.AddDynamic(this, &UBBChatWidget::OnSendButtonClicked);
 	ET_InputChat->OnTextCommitted.AddDynamic(this, &UBBChatWidget::OnInputTextCommitted);
+	Btn_ReadyORReset->OnClicked.AddDynamic(this, &UBBChatWidget::OnStartGameButtonClicked);
 }
 
 // 동적 스폰된 위젯을 스크롤박스에 붙여주는 메서드
@@ -86,4 +87,22 @@ FReply UBBChatWidget::NativeOnPreviewKeyDown(const FGeometry& InGeometry, const 
 	}
 	
 	return Super::NativeOnPreviewKeyDown(InGeometry, InKeyEvent);
+}
+
+// 시작/재시작 버튼의 활성화 여부
+void UBBChatWidget::SetStartButtonVisibility(bool bVisible)
+{
+	if (Btn_ReadyORReset)
+	{
+		Btn_ReadyORReset->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+	}
+}
+
+void UBBChatWidget::OnStartGameButtonClicked()
+{
+	ABBPlayerController* PC = Cast<ABBPlayerController>(GetOwningPlayer());
+	if (PC)
+	{
+		PC->ServerRequestRematch();
+	}
 }
