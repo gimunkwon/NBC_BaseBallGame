@@ -89,7 +89,15 @@ void ABBPlayerController::ClientOnGameResult_Implementation(bool bWin)
 	// 패배: 버튼 Visible(재도전 기능 가능) 승리: 버튼 Hidden(재도전 요쳥을 수락만 할 수 있게)
 	if (Widget_ChatInst)
 	{
-		Widget_ChatInst->SetStartButtonVisibility(!bWin);
+		if (!bWin)
+		{
+			Widget_ChatInst->SetStartButtonEnable(true);
+			Widget_ChatInst->SetStartButtonVisibility(true);
+		}
+		else
+		{
+			Widget_ChatInst->SetStartButtonVisibility(false);
+		}
 	}
 }
 
@@ -162,5 +170,14 @@ void ABBPlayerController::ServerRespondRematch_Implementation(bool bAccepted)
 	if (GameMode)
 	{
 		GameMode->RespondRematch(this, bAccepted);
+	}
+}
+
+void ABBPlayerController::ServerSetReady_Implementation()
+{
+	ABBGameMode* GM = Cast<ABBGameMode>(GetWorld()->GetAuthGameMode());
+	if (GM)
+	{
+		GM->SetPlayerReady(this);
 	}
 }

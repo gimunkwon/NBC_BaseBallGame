@@ -42,6 +42,8 @@ public:
 	void ServerRequestRematch();
 	UFUNCTION(Server,Reliable,BlueprintCallable)
 	void ServerRespondRematch(bool bAccepted);
+	UFUNCTION(Server,Reliable)
+	void ServerSetReady();
 	
 #pragma endregion 
 	

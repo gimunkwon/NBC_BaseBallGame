@@ -38,6 +38,8 @@ public:
 	void AddMessage(const FString& InMessage);
 	UFUNCTION(BlueprintCallable)
 	void SetStartButtonVisibility(bool bVisible);
+	UFUNCTION(BlueprintCallable)
+	void SetStartButtonEnable(bool bCanEnable);
 	
 private:
 	UFUNCTION()

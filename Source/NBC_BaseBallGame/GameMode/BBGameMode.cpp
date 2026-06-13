@@ -212,12 +212,34 @@ void ABBGameMode::RequestRematch(ABBPlayerController* RequesterPC)
 	}
 	bRematchPending = true;
 	
-	if (!CachedWinnerPC.IsValid())
+	if (CachedWinnerPC.IsValid())
 	{
-		ResetRound();
-		return;
+		CachedWinnerPC->ClientShowRematchRequest();
 	}
-	CachedWinnerPC->ClientShowRematchRequest();
+	else // 전원 패배 케이스
+	{
+		CachedLoserPC = RequesterPC;
+		
+		ABBPlayerController* OtherPC = nullptr;
+		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+		{
+			ABBPlayerController* PC = Cast<ABBPlayerController>(*It);
+			if (PC && PC != RequesterPC)
+			{
+				OtherPC = PC;
+				break;
+			}
+		}
+		
+		if (OtherPC)
+		{
+			OtherPC->ClientShowRematchRequest();
+		}
+		else
+		{
+			ResetRound();
+		}
+	}
 }
 
 // 승자 클라이언트에서 재도전 요청 수락/거절 메서드
@@ -229,6 +251,7 @@ void ABBGameMode::RespondRematch(ABBPlayerController* ResponderPC, bool bAccepte
 	}
 	else
 	{
+		bRematchPending = false;
 		if (CachedLoserPC.IsValid())
 		{
 			CachedLoserPC->ClientOnRematchDeclined();
@@ -264,11 +287,10 @@ void ABBGameMode::SetPlayerReady(ABBPlayerController* PC)
 	
 	ABBPlayerState* BBPS = Cast<ABBPlayerState>(PC->PlayerState);
 	// 이미 준비 완료 됬으면 EarlyExit
-	if (!BBPS || !BBPS->bIsReady)
+	if (!BBPS || BBPS->bIsReady)
 	{
 		return;
 	}
-	
 	BBPS->bIsReady = true;
 	
 	FString PlayerName = PC->PlayerState->GetPlayerName();
@@ -281,7 +303,7 @@ void ABBGameMode::SetPlayerReady(ABBPlayerController* PC)
 void ABBGameMode::CheckAllReady()
 {
 	ABBGameState* GS = GetGameState<ABBGameState>();
-	if ((!GS || GS->GamePhase != EBBGamePhase::Waiting) || (GetNumPlayers() > 2))
+	if ((!GS || GS->GamePhase != EBBGamePhase::Waiting) || (GetNumPlayers() < 2))
 	{
 		return;
 	}

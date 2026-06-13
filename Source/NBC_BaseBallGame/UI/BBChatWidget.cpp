@@ -5,7 +5,9 @@
 #include "Components/EditableTextBox.h"
 #include "Components/ScrollBox.h"
 #include "Components/TextBlock.h"
+#include "NBC_BaseBallGame/GameState/BBGameState.h"
 #include "NBC_BaseBallGame/PlayerController/BBPlayerController.h"
+#include "NBC_BaseBallGame/PlayerState/BBPlayerState.h"
 
 void UBBChatWidget::NativeConstruct()
 {
@@ -98,11 +100,38 @@ void UBBChatWidget::SetStartButtonVisibility(bool bVisible)
 	}
 }
 
+// 시작/재시작 버튼의 활성화 여부
+void UBBChatWidget::SetStartButtonEnable(bool bCanEnable)
+{
+	if (Btn_ReadyORReset)
+	{
+		Btn_ReadyORReset->SetIsEnabled(bCanEnable);
+	}
+}
+
 void UBBChatWidget::OnStartGameButtonClicked()
 {
 	ABBPlayerController* PC = Cast<ABBPlayerController>(GetOwningPlayer());
-	if (PC)
+	if (!PC)
+	{
+		return;
+	}
+	ABBGameState* GS = Cast<ABBGameState>(GetWorld()->GetGameState());
+	if (!GS)
+	{
+		return;
+	}
+	
+	if (GS->GamePhase == EBBGamePhase::Waiting)
+	{
+		PC->ServerSetReady();
+		Btn_ReadyORReset->SetIsEnabled(false);
+	}
+	else
 	{
 		PC->ServerRequestRematch();
 	}
+	
+	
+	
 }
