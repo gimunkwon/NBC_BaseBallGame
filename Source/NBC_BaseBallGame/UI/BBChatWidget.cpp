@@ -5,6 +5,7 @@
 #include "Components/EditableTextBox.h"
 #include "Components/ScrollBox.h"
 #include "Components/TextBlock.h"
+#include "NBC_BaseBallGame/GameState/BBGameState.h"
 #include "NBC_BaseBallGame/PlayerController/BBPlayerController.h"
 
 void UBBChatWidget::NativeConstruct()
@@ -13,6 +14,7 @@ void UBBChatWidget::NativeConstruct()
 	
 	Btn_SendChat->OnClicked.AddDynamic(this, &UBBChatWidget::OnSendButtonClicked);
 	ET_InputChat->OnTextCommitted.AddDynamic(this, &UBBChatWidget::OnInputTextCommitted);
+	Btn_ReadyORReset->OnClicked.AddDynamic(this, &UBBChatWidget::OnStartGameButtonClicked);
 }
 
 // 동적 스폰된 위젯을 스크롤박스에 붙여주는 메서드
@@ -86,4 +88,96 @@ FReply UBBChatWidget::NativeOnPreviewKeyDown(const FGeometry& InGeometry, const 
 	}
 	
 	return Super::NativeOnPreviewKeyDown(InGeometry, InKeyEvent);
+}
+
+// 시작/재시작 버튼의 활성화 여부
+void UBBChatWidget::SetStartButtonVisibility(bool bVisible)
+{
+	if (Btn_ReadyORReset)
+	{
+		Btn_ReadyORReset->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+	}
+}
+
+// 시작/재시작 버튼의 활성화 여부
+void UBBChatWidget::SetStartButtonEnable(bool bCanEnable)
+{
+	if (Btn_ReadyORReset)
+	{
+		Btn_ReadyORReset->SetIsEnabled(bCanEnable);
+	}
+}
+
+void UBBChatWidget::OnStartGameButtonClicked()
+{
+	ABBPlayerController* PC = Cast<ABBPlayerController>(GetOwningPlayer());
+	if (!PC) return;
+
+	ABBGameState* GS = Cast<ABBGameState>(GetWorld()->GetGameState());
+	if (!GS) return;
+
+	if (GS->GamePhase == EBBGamePhase::Waiting)
+	{
+		PC->ServerSetReady();
+		Btn_ReadyORReset->SetIsEnabled(false);
+	}
+	else
+	{
+		PC->ServerRequestRematch();
+	}
+}
+
+// 턴 시작 시 호출 — 모드 전환 + 카운트다운 시작 + 색상 업데이트
+// InTurnDuration=0 으로 호출하면 타이머만 정지
+void UBBChatWidget::SetGuessMode(bool bGuess, float InTurnDuration)
+{
+	bIsGuessMode = bGuess;
+	FString ModeText = bIsGuessMode ? TEXT("[정답]") : TEXT("[일반]");
+	if (Text_ModeDisplay)
+	{
+		Text_ModeDisplay->SetText(FText::FromString(ModeText));
+	}
+
+	GetWorld()->GetTimerManager().ClearTimer(CountdownHandle);
+	RemainingSeconds = InTurnDuration;
+	if (Text_RemainingTime)
+	{
+		Text_RemainingTime->SetText(FText::FromString(FString::FromInt(FMath::CeilToInt(RemainingSeconds))));
+	}
+	if (InTurnDuration > 0.f)
+	{
+		GetWorld()->GetTimerManager().SetTimer(CountdownHandle, this, &UBBChatWidget::OnCountdownTick, 1.f, true);
+	}
+
+	UpdateTurnColors(bGuess);
+}
+
+void UBBChatWidget::OnCountdownTick()
+{
+	RemainingSeconds -= 1.f;
+	if (Text_RemainingTime)
+	{
+		Text_RemainingTime->SetText(FText::FromString(FString::FromInt(FMath::Max(0, FMath::CeilToInt(RemainingSeconds)))));
+	}
+	if (RemainingSeconds <= 0.f)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(CountdownHandle);
+	}
+}
+
+void UBBChatWidget::SetRemainChance(int32 InRemainChance)
+{
+	if (Text_RemainChance)
+	{
+		Text_RemainChance->SetText(FText::FromString(FString::Printf(TEXT("남은 기회 : %d"),InRemainChance)));
+	}
+}
+
+void UBBChatWidget::UpdateTurnColors(bool bIsMyTurn)
+{
+	const FLinearColor Active(1.f, 1.f, 0.f, 1.f);     // 노란색 — 현재 턴
+	const FLinearColor Inactive(0.4f, 0.4f, 0.4f, 1.f); // 회색 — 대기 중
+
+	if (Text_MyTurn)    Text_MyTurn->SetColorAndOpacity(bIsMyTurn ? Active : Inactive);
+	if (Text_OtherTurn) Text_OtherTurn->SetColorAndOpacity(bIsMyTurn ? Inactive : Active);
 }
