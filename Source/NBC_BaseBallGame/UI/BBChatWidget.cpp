@@ -127,8 +127,9 @@ void UBBChatWidget::OnStartGameButtonClicked()
 	}
 }
 
-// 턴 변경 시 정답/일반 모드 강제 전환
-void UBBChatWidget::SetGuessMode(bool bGuess)
+// 턴 시작 시 호출 — 모드 전환 + 카운트다운 시작 + 색상 업데이트
+// InTurnDuration=0 으로 호출하면 타이머만 정지
+void UBBChatWidget::SetGuessMode(bool bGuess, float InTurnDuration)
 {
 	bIsGuessMode = bGuess;
 	FString ModeText = bIsGuessMode ? TEXT("[정답]") : TEXT("[일반]");
@@ -136,4 +137,39 @@ void UBBChatWidget::SetGuessMode(bool bGuess)
 	{
 		Text_ModeDisplay->SetText(FText::FromString(ModeText));
 	}
+
+	GetWorld()->GetTimerManager().ClearTimer(CountdownHandle);
+	RemainingSeconds = InTurnDuration;
+	if (Text_RemainingTime)
+	{
+		Text_RemainingTime->SetText(FText::FromString(FString::FromInt(FMath::CeilToInt(RemainingSeconds))));
+	}
+	if (InTurnDuration > 0.f)
+	{
+		GetWorld()->GetTimerManager().SetTimer(CountdownHandle, this, &UBBChatWidget::OnCountdownTick, 1.f, true);
+	}
+
+	UpdateTurnColors(bGuess);
+}
+
+void UBBChatWidget::OnCountdownTick()
+{
+	RemainingSeconds -= 1.f;
+	if (Text_RemainingTime)
+	{
+		Text_RemainingTime->SetText(FText::FromString(FString::FromInt(FMath::Max(0, FMath::CeilToInt(RemainingSeconds)))));
+	}
+	if (RemainingSeconds <= 0.f)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(CountdownHandle);
+	}
+}
+
+void UBBChatWidget::UpdateTurnColors(bool bIsMyTurn)
+{
+	const FLinearColor Active(1.f, 1.f, 0.f, 1.f);     // 노란색 — 현재 턴
+	const FLinearColor Inactive(0.4f, 0.4f, 0.4f, 1.f); // 회색 — 대기 중
+
+	if (Text_MyTurn)    Text_MyTurn->SetColorAndOpacity(bIsMyTurn ? Active : Inactive);
+	if (Text_OtherTurn) Text_OtherTurn->SetColorAndOpacity(bIsMyTurn ? Inactive : Active);
 }
